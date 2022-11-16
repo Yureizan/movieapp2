@@ -1,24 +1,50 @@
+import pickle
+import pandas as pd
 import streamlit as st
-from st_functions import st_button, load_css
-from PIL import Image
+import base64
 
-load_css()
+def recommend(movie):
+    movie_index = movies[movies['title'] == movie].index[0]
+    distances = similarity[movie_index]
+    movie_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
 
-st.write("[![Star](https://img.shields.io/github/stars/dataprofessor/links.svg?logo=github&style=social)](https://gitHub.com/dataprofessor/links)")
+    recommended_movies = []
+    for i in movie_list:
 
-col1, col2, col3 = st.columns(3)
-col2.image(Image.open('dp.png'))
+        recommended_movies.append(movies.iloc[i[0]].title)
+    return recommended_movies
 
-st.header('Chanin Nantasenamat, Ph.D.')
+movie_dict = pickle.load(open('movie_dict.pkl','rb'))
+movies = pd.DataFrame(movie_dict)
 
-st.info('Developer Advocate, Content Creator and ex-Professor with an interest in Data Science and Bioinformatics')
+similarity = pickle.load(open('similarity.pkl','rb'))
 
-icon_size = 20
+st.title('Netflix Movies')
 
-st_button('youtube', 'https://youtube.com/dataprofessor', 'Data Professor YouTube channel', icon_size)
-st_button('youtube', 'https://youtube.com/codingprofessor', 'Coding Professor YouTube channel', icon_size)
-st_button('medium', 'https://data-professor.medium.com/', 'Read my Blogs', icon_size)
-st_button('twitter', 'https://twitter.com/thedataprof/', 'Follow me on Twitter', icon_size)
-st_button('linkedin', 'https://www.linkedin.com/in/chanin-nantasenamat/', 'Follow me on LinkedIn', icon_size)
-st_button('newsletter', 'https://sendfox.com/dataprofessor/', 'Sign up for my Newsletter', icon_size)
-st_button('cup', 'https://www.buymeacoffee.com/dataprofessor/', 'Buy me a Coffee', icon_size)
+selected_movie_name = st.selectbox(
+'Please choose a movie from the selectbox and click on recommend to get recommendations',
+movies['title'].values)
+
+if st.button('Recommend'):
+    recommendations = recommend(selected_movie_name)
+    for i in recommendations:
+        st.write(i)
+
+
+        def add_bg_from_local(image_file):
+            with open(image_file, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read())
+            st.markdown(
+                f"""
+            <style>
+            .stApp {{
+                background-image: url(data:image/{"jpg"};base64,{encoded_string.decode()});
+                background-size: cover
+            }}
+            </style>
+            """,
+                unsafe_allow_html=True
+            )
+
+
+        add_bg_from_local('Watch more bg fo more.jpg')
